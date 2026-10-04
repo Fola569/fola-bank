@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#00B875">
+<title>Tidewater Pay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g:#00B875; --gd:#008A59; --gl:#E6F8F0; --bg:#F4F6F5; --ink:#17211D; --mute:#6B7872;
+  --line:#E4EAE7; --orange:#FF8A1F; --bad:#E5484D; --font:'Plus Jakarta Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font:500 15px/1.45 var(--font);color:var(--ink);background:#DDE5E1}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+h1,h2,h3,p{margin:0}
+#app{max-width:440px;min-height:100vh;margin:0 auto;background:var(--bg);position:relative;box-shadow:0 0 40px rgba(0,0,0,.12)}
+.num{font-variant-numeric:tabular-nums}
+
+/* controls */
+.btn{border:0;border-radius:14px;padding:.95rem 1.1rem;font-weight:700;cursor:pointer;width:100%}
+.btn.primary{background:var(--g);color:#fff}
+.btn.primary:active{background:var(--gd)}
+.btn.soft{background:var(--gl);color:var(--gd)}
+.btn.ghost{background:#fff;border:1px solid var(--line)}
+.btn.danger{color:var(--bad)}
+.link{background:none;border:0;padding:0;color:var(--gd);font-weight:700;cursor:pointer}
+label{display:block;font-weight:600;font-size:.85rem;color:var(--mute);margin-bottom:1rem}
+input,select{display:block;width:100%;margin-top:.4rem;padding:.9rem 1rem;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-weight:500;font-size:1rem}
+input:focus,select:focus{border-color:var(--g);outline:none}
+.check{display:flex;gap:.6rem;align-items:flex-start;font-weight:500}
+.check input{width:20px;height:20px;margin:.1rem 0 0;accent-color:var(--g)}
+.err{color:var(--bad);min-height:1.4em;margin-top:.6rem;font-size:.88rem;font-weight:600}
+.hint{font-size:.82rem;color:var(--mute);margin:-.4rem 0 1rem}
+
+/* auth */
+.hero{background:var(--g);color:#fff;padding:2.2rem 1.5rem 4.5rem}
+.logo{width:46px;height:46px;border-radius:14px;background:#fff;color:var(--g);display:grid;place-items:center;font-weight:800;font-size:1.4rem;margin-bottom:1.4rem}
+.hero h1{font-size:1.8rem;font-weight:800}
+.hero p{opacity:.9;margin-top:.3rem}
+.sheet-card{background:#fff;border-radius:26px 26px 0 0;margin-top:-2.2rem;padding:1.6rem 1.4rem 2rem;min-height:60vh}
+.pinbox{margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--line)}
+.alt{margin-top:1.3rem;text-align:center;color:var(--mute);font-size:.9rem}
+
+/* scanner */
+.overlay{position:fixed;inset:0;background:rgba(10,30,22,.85);display:flex;align-items:center;justify-content:center;z-index:70;padding:1rem}
+.scan-card{background:#fff;border-radius:24px;padding:1.5rem;width:100%;max-width:360px;text-align:center}
+.scan-card h2{font-size:1.2rem;font-weight:800;margin-bottom:1rem}
+.ring{position:relative;width:250px;height:250px;margin:0 auto}
+.ring video{position:absolute;inset:12px;width:226px;height:226px;border-radius:50%;object-fit:cover;transform:scaleX(-1);background:#10201a}
+.ring svg{position:absolute;inset:0;width:100%;height:100%}
+.ring circle{fill:none;stroke:var(--g);stroke-width:1.8;stroke-dasharray:6 4;transform-origin:50% 50%;animation:spin 14s linear infinite}
+.ring[data-state=ok] circle{stroke-dasharray:none;stroke-width:2.6;animation:none}
+.ring[data-state=fail] circle{stroke:var(--bad);stroke-dasharray:none;stroke-width:2.6;animation:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status{min-height:3em;margin:1rem 0 .4rem;font-weight:600;color:var(--gd)}
+.dots{display:flex;gap:.45rem;justify-content:center;margin-bottom:.8rem;min-height:10px}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--g)}
+.scan-card .btn{background:#fff;border:1px solid var(--line)}
+
+/* home */
+.screen{padding-bottom:84px}
+.hd{background:var(--g);color:#fff;padding:1.2rem 1.2rem 5.6rem;display:flex;justify-content:space-between;align-items:center}
+.hd .who{display:flex;align-items:center;gap:.7rem;font-weight:700}
+.avatar{width:42px;height:42px;border-radius:50%;background:#fff;color:var(--g);display:grid;place-items:center;font-weight:800}
+.iconbtn{background:rgba(255,255,255,.18);border:0;color:#fff;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.bal{background:#fff;border-radius:20px;margin:-4.2rem 1rem 0;padding:1.2rem;box-shadow:0 8px 24px rgba(0,60,40,.1)}
+.bal .row{display:flex;justify-content:space-between;align-items:center}
+.bal small{color:var(--mute);font-weight:600;display:flex;align-items:center;gap:.4rem}
+.bal .eye{background:none;border:0;color:var(--mute);cursor:pointer;display:grid;place-items:center;padding:0}
+.bal .amt{font-size:2rem;font-weight:800;margin:.2rem 0 .9rem;letter-spacing:-.02em}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem}
+.split div{background:var(--bg);border-radius:12px;padding:.6rem .8rem}
+.split small{display:block;color:var(--mute);font-size:.75rem;font-weight:600}
+.split b{font-size:.95rem}
+.quick{background:#fff;border-radius:20px;margin:1rem;padding:1.1rem .6rem;display:grid;grid-template-columns:repeat(4,1fr);gap:1rem .2rem}
+.q{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:.45rem;font-size:.74rem;font-weight:600;cursor:pointer;color:var(--ink)}
+.q span{width:46px;height:46px;border-radius:16px;background:var(--gl);color:var(--gd);display:grid;place-items:center}
+.q.o span{background:#FFF1E2;color:var(--orange)}
+.promo{margin:0 1rem 1rem;border-radius:18px;background:linear-gradient(110deg,#0B6B4A,var(--g));color:#fff;padding:1.1rem 1.2rem;display:flex;gap:.9rem;align-items:center}
+.promo svg{flex:none}
+.promo b{display:block;font-weight:800}
+.promo p{font-size:.82rem;opacity:.9}
+.card{background:#fff;border-radius:20px;margin:0 1rem 1rem;padding:1.1rem 1.2rem}
+.card h2{font-size:1rem;font-weight:800;display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem}
+.card h2 .link{font-size:.85rem}
+.tx{list-style:none;margin:0;padding:0}
+.tx li{display:flex;gap:.8rem;align-items:center;padding:.75rem 0;border-bottom:1px solid var(--line)}
+.tx li:last-child{border:0}
+.tx .ti{width:40px;height:40px;border-radius:50%;background:var(--gl);color:var(--gd);display:grid;place-items:center;flex:none}
+.tx .ti.out{background:#FDECEC;color:var(--bad)}
+.tx .t{flex:1;min-width:0}
+.tx .t b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx .t small{color:var(--mute)}
+.tx .a{font-weight:800}
+.tx .a.in{color:var(--gd)}
+.empty{color:var(--mute);padding:1rem 0}
+.title{padding:1.4rem 1.2rem .6rem;font-size:1.5rem;font-weight:800}
+.me-head{text-align:center;padding:2rem 1rem 1rem}
+.me-head .avatar{width:72px;height:72px;font-size:1.6rem;background:var(--g);color:#fff;margin:0 auto .7rem}
+.badge{display:inline-block;border-radius:99px;padding:.15rem .7rem;font-size:.8rem;font-weight:700;background:var(--gl);color:var(--gd)}
+.badge.off{background:#ECEFEE;color:var(--mute)}
+.stack{display:grid;gap:.6rem;margin-top:.9rem}
+
+/* bottom tabs */
+.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding:.4rem 0 calc(.4rem + env(safe-area-inset-bottom));z-index:30}
+.tabs button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:.15rem;font-size:.74rem;font-weight:700;color:var(--mute);padding:.4rem;cursor:pointer}
+.tabs button[aria-current=page]{color:var(--g)}
+
+/* bottom sheet */
+.backdrop{position:fixed;inset:0;background:rgba(10,30,22,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:440px;border-radius:26px 26px 0 0;padding:1.3rem 1.3rem 1.8rem;max-height:92vh;overflow:auto}
+.sheet h2{font-size:1.25rem;font-weight:800;margin-bottom:1rem}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:1.1rem}
+.seg button{border:0;background:none;border-radius:9px;padding:.6rem;font-weight:700;color:var(--mute);cursor:pointer}
+.seg button.on{background:#fff;color:var(--gd);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.toast{position:fixed;bottom:5.5rem;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:.75rem 1.2rem;border-radius:12px;z-index:80;font-weight:600;max-width:90vw;text-align:center}
+@media (prefers-reduced-motion:reduce){.ring circle{animation:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<noscript>This app needs JavaScript.</noscript>
+
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+<script>
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=k=>'₦'+(k/100).toLocaleString('en-NG',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtDate=iso=>new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+function toast(t){const el=document.createElement('div');el.className='toast';el.setAttribute('role','status');el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),2800);}
+
+const ICONS={
+ send:'<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>',
+ save:'<path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h14v13H5a2 2 0 0 1-2-2V5"/><path d="M16 14h.01"/>',
+ phone:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>',
+ wifi:'<path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><path d="M12 20h.01"/><path d="M2 9a15 15 0 0 1 20 0"/>',
+ ticket:'<path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3z"/><path d="M13 6v12" stroke-dasharray="2 3"/>',
+ tv:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="m8 2 4 3 4-3"/>',
+ bolt:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+ grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+ home:'<path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/>',
+ list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+ eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+ eyeoff:'<path d="M3 3l18 18"/><path d="M10.6 5.1A9.7 9.7 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.6 6.6A17 17 0 0 0 2 12s4 7 10 7a9.6 9.6 0 0 0 4.4-1"/>',
+ bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/>',
+ face:'<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 10v1M15 10v1M9.5 15a3.5 3.5 0 0 0 5 0"/>',
+ down:'<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
+ up:'<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>'
+};
+const ic=(n,s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
+
+/* ---------- settings ---------- */
+const MODEL_URL='https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+const MATCH_THRESHOLD=0.5;          // lower = stricter
+const STEP_UP_KOBO=5000000;         // transfers to banks at/above ₦50,000 need a fresh face check
+const MAX_FACE_FAILS=3;
+const KEY='tidewater.v2';
+const BANKS=['Access Bank','First Bank','GTBank','Kuda','UBA','Zenith Bank'];
+
+/* ---------- storage (demo only: localStorage) ---------- */
+let db;
+try{db=JSON.parse(localStorage.getItem(KEY))||{users:{},last:''};}catch{db={users:{},last:''};}
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+let current=sessionStorage.getItem('tw.session');
+if(current&&!db.users[current])current=null;
+let view='login',tab='home',hide=false;
+const faceFails={},pinFails={},pinLock={};
+const me=()=>current?db.users[current]:null;
+
+async function hashPin(pin,salt){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+pin));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ---------- face engine ---------- */
+let modelsReady=null,stream=null;
+function loadModels(){
+  if(!modelsReady)modelsReady=Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+  ]).catch(e=>{modelsReady=null;throw e;});
+  return modelsReady;
+}
+async function startCamera(video){
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480},audio:false});
+  video.srcObject=stream;await video.play();
+}
+function stopCamera(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}}
+const detOpts=()=>new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:0.5});
+const detect=v=>faceapi.detectSingleFace(v,detOpts()).withFaceLandmarks().withFaceDescriptor();
+
+function eyeOpenness(landmarks){
+  const p=landmarks.positions,d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  const ear=e=>(d(e[1],e[5])+d(e[2],e[4]))/(2*d(e[0],e[3]));
+  return (ear(p.slice(36,42))+ear(p.slice(42,48)))/2;
+}
+function matchDistance(samples,desc){
+  const ds=samples.map(s=>faceapi.euclideanDistance(s,desc)).sort((a,b)=>a-b);
+  const best=ds.slice(0,3);
+  return best.reduce((a,b)=>a+b,0)/best.length;
+}
+function cameraError(err){
+  if(err&&err.name==='NotAllowedError')return 'Camera access is blocked. Allow it in your browser settings and try again.';
+  if(err&&err.name==='NotFoundError')return 'No camera found on this device.';
+  return 'Could not start face recognition. Check your connection and that the page runs on localhost or https.';
+}
+
+/* ---------- scanner overlay ---------- */
+function openOverlay(title){
+  const el=document.createElement('div');el.className='overlay';
+  el.innerHTML=`<div class="scan-card" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+    <h2>${esc(title)}</h2>
+    <div class="ring" data-state="scan"><video playsinline muted></video>
+      <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48.5"/></svg></div>
+    <p class="status" aria-live="polite"></p>
+    <div class="dots"></div>
+    <button class="btn cancel" type="button">Cancel</button></div>`;
+  document.body.appendChild(el);
+  const o={el,video:$('video',el),cancelled:false,
+    status:t=>{$('.status',el).textContent=t;},
+    state:s=>{$('.ring',el).dataset.state=s;},
+    close:()=>{stopCamera();el.remove();}};
+  $('.cancel',el).onclick=()=>{o.cancelled=true;};
+  $('.cancel',el).focus();
+  return o;
+}
+async function prepare(o){
+  try{
+    o.status('Loading face recognition…');await loadModels();
+    o.status('Starting camera…');await startCamera(o.video);
+    return true;
+  }catch(err){
+    o.state('fail');o.status(cameraError(err));await sleep(3000);o.close();return false;
+  }
+}
+
+/* Verify: match the stored face AND require a blink so a still photo is rejected */
+async function verifyFace(user,title){
+  const o=openOverlay(title);
+  if(!await prepare(o))return false;
+  const samples=user.faces.map(f=>new Float32Array(f));
+  const t0=Date.now();let baseline=0,blinked=false;
+  o.status('Look at the camera, then blink once');
+  while(!o.cancelled&&Date.now()-t0<20000){
+    let det=null;try{det=await detect(o.video);}catch{}
+    if(!det||det.detection.score<0.6){o.status('Center your face in the circle');await sleep(100);continue;}
+    const dist=matchDistance(samples,det.descriptor);
+    const e=eyeOpenness(det.landmarks);
+    baseline=Math.max(baseline*0.99,e);
+    if(!blinked){
+      if(dist>=MATCH_THRESHOLD){o.status('Hold still and face the camera');}
+      else{
+        o.status('Now blink once');
+        if(baseline>0.2&&e<baseline*0.72)blinked=true;
+      }
+    }else if(e>baseline*0.85){
+      if(dist<MATCH_THRESHOLD){o.state('ok');o.status('Face verified');await sleep(700);o.close();return true;}
+      break;
+    }
+    await sleep(60);
+  }
+  if(!o.cancelled){o.state('fail');o.status('We couldn’t verify your face.');await sleep(1500);}
+  o.close();return false;
+}
+
+/* Enroll: capture several poses */
+const POSES=['Look straight at the camera','Turn a little to your left','Turn a little to your right','Tilt your chin up slightly','Look straight and smile'];
+async function enrollFace(){
+  const o=openOverlay('Set up face login');
+  if(!await prepare(o))return null;
+  const dots=$('.dots',o.el);dots.innerHTML=POSES.map(()=>'<i></i>').join('');
+  const out=[];
+  for(let i=0;i<POSES.length&&!o.cancelled;i++){
+    o.status(POSES[i]);await sleep(1400);
+    let got=null,stable=0;const t0=Date.now();
+    while(!o.cancelled&&Date.now()-t0<20000){
+      let det=null;try{det=await detect(o.video);}catch{}
+      if(det&&det.detection.score>0.7){stable++;if(stable>=4){got=det.descriptor;break;}}
+      else{stable=0;o.status('Center your face in the circle');}
+      await sleep(120);
+    }
+    if(!got)break;
+    out.push(Array.from(got));dots.children[i].classList.add('on');
+  }
+  if(out.length===POSES.length){o.state('ok');o.status('Face saved');await sleep(900);o.close();return out;}
+  o.close();return null;
+}
+
+/* ---------- navigation ---------- */
+const app=$('#app');
+function render(){
+  stopCamera();
+  if(!me())return view==='register'?renderRegister():renderLogin();
+  renderDash();
+}
+function startSession(name){
+  current=name;db.last=name;save();sessionStorage.setItem('tw.session',name);view='dash';tab='home';render();
+}
+function signOut(){current=null;sessionStorage.removeItem('tw.session');view='login';render();}
+
+/* ---------- auth screens ---------- */
+function renderLogin(){
+  app.innerHTML=`<main>
+  <div class="hero"><div class="logo">T</div><h1>Welcome back</h1><p>Sign in to your wallet</p></div>
+  <section class="sheet-card">
+    <label>Username<input id="u" autocomplete="username" value="${esc(db.last||'')}"></label>
+    <button class="btn primary" id="faceBtn" type="button">Sign in with face</button>
+    <p class="err" id="err" role="alert"></p>
+    <div class="alt"><button class="link" id="pinToggle" type="button">Use your PIN instead</button></div>
+    <div class="pinbox" id="pinBox" hidden>
+      <label>6-digit PIN<input id="pin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password"></label>
+      <button class="btn soft" id="pinBtn" type="button">Sign in with PIN</button>
+    </div>
+    <p class="alt">New here? <button class="link" id="toReg" type="button">Create a wallet</button></p>
+  </section></main>`;
+  const err=t=>{$('#err').textContent=t;};
+  const showPin=()=>{$('#pinBox').hidden=false;$('#pinToggle').hidden=true;};
+  $('#pinToggle').onclick=showPin;
+  $('#toReg').onclick=()=>{view='register';render();};
+  const getUser=()=>{const n=$('#u').value.trim().toLowerCase();return [n,db.users[n]];};
+
+  $('#faceBtn').onclick=async()=>{
+    err('');const [name,user]=getUser();
+    if(!user||!user.faces||!user.faces.length){err('Face login isn’t available for that username. Try your PIN or create a wallet.');return;}
+    if((faceFails[name]||0)>=MAX_FACE_FAILS){err('Too many face attempts. Sign in with your PIN.');showPin();return;}
+    if(await verifyFace(user,'Sign in with your face')){faceFails[name]=0;startSession(name);}
+    else{
+      faceFails[name]=(faceFails[name]||0)+1;
+      if(faceFails[name]>=MAX_FACE_FAILS){err('Face login is paused for now. Sign in with your PIN.');showPin();}
+      else err('Face not verified. Try again, or use your PIN.');
+    }
+  };
+  $('#pinBtn').onclick=async()=>{
+    err('');const [name,user]=getUser();const pin=$('#pin').value;
+    if(Date.now()<(pinLock[name]||0)){err('Too many wrong PINs. Wait 30 seconds and try again.');return;}
+    if(user&&/^\d{6}$/.test(pin)&&await hashPin(pin,user.salt)===user.pinHash){pinFails[name]=0;faceFails[name]=0;startSession(name);return;}
+    pinFails[name]=(pinFails[name]||0)+1;
+    if(pinFails[name]>=5){pinLock[name]=Date.now()+30000;pinFails[name]=0;}
+    err('Username or PIN is incorrect.');
+  };
+}
+
+function renderRegister(){
+  app.innerHTML=`<main>
+  <div class="hero"><div class="logo">T</div><h1>Create your wallet</h1><p>Takes about a minute</p></div>
+  <section class="sheet-card">
+    <label>Full name<input id="name" autocomplete="name"></label>
+    <label>Username<input id="un" autocomplete="username" placeholder="3–20 letters or numbers"></label>
+    <label>6-digit PIN (backup sign-in)<input id="pin" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label>
+    <label class="check"><input id="consent" type="checkbox"><span>I agree to let this app save a numeric map of my face in this browser to sign me in.</span></label>
+    <button class="btn primary" id="go" type="button">Continue to face setup</button>
+    <p class="err" id="err" role="alert"></p>
+    <p class="alt">Already have a wallet? <button class="link" id="toLogin" type="button">Sign in</button></p>
+  </section></main>`;
+  const err=t=>{$('#err').textContent=t;};
+  $('#toLogin').onclick=()=>{view='login';render();};
+  $('#go').onclick=async()=>{
+    const name=$('#name').value.trim(),un=$('#un').value.trim().toLowerCase(),pin=$('#pin').value;
+    if(name.length<2)return err('Enter your full name.');
+    if(!/^[a-z0-9_.-]{3,20}$/.test(un))return err('Username must be 3–20 letters, numbers, or . _ -');
+    if(db.users[un])return err('That username is taken. Choose another.');
+    if(!/^\d{6}$/.test(pin))return err('PIN must be exactly 6 digits.');
+    if(!$('#consent').checked)return err('Please agree to face data storage to continue.');
+    err('');
+    const faces=await enrollFace();
+    if(!faces)return err('Face setup didn’t finish. Try again in good light.');
+    const salt=[...crypto.getRandomValues(new Uint8Array(8))].join('');
+    const d=n=>new Date(Date.now()-n*864e5).toISOString();
+    db.users[un]={name,username:un,salt,pinHash:await hashPin(pin,salt),faces,
+      acct:{wallet:4820550,savings:12400000},
+      tx:[{id:1,date:d(1),label:'Corner Market',amt:-426000,acct:'wallet'},
+          {id:2,date:d(3),label:'Salary',amt:31200000,acct:'wallet'},
+          {id:3,date:d(5),label:'Sent to Riverside Rent',amt:-13500000,acct:'wallet'},
+          {id:4,date:d(9),label:'Savings interest',amt:231500,acct:'savings'}]};
+    save();startSession(un);
+  };
+}
+
+/* ---------- dashboard ---------- */
+const hidden=k=>hide?'₦ ••••••':money(k);
+function txList(list){
+  if(!list.length)return '<p class="empty">No activity yet.</p>';
+  return `<ul class="tx">${list.map(t=>`<li>
+    <span class="ti ${t.amt<0?'out':''}">${ic(t.amt<0?'up':'down',18)}</span>
+    <span class="t"><b>${esc(t.label)}</b><small>${fmtDate(t.date)} · ${t.acct==='savings'?'Savings':'Wallet'}</small></span>
+    <span class="a num ${t.amt>0?'in':''}">${t.amt>0?'+':'−'}${money(Math.abs(t.amt))}</span></li>`).join('')}</ul>`;
+}
+const sortedTx=u=>[...u.tx].sort((a,b)=>b.date.localeCompare(a.date));
+
+function homeView(u){
+  const total=u.acct.wallet+u.acct.savings;
+  const items=[['send','Send money','send'],['save','To savings','own'],['phone','Airtime','soon'],['wifi','Data','soon'],
+               ['ticket','Betting','soon'],['tv','TV','soon'],['bolt','Electricity','soon'],['grid','More','soon']];
+  return `<header class="hd">
+      <div class="who"><span class="avatar">${esc(u.name[0].toUpperCase())}</span><span>Hi, ${esc(u.name.split(' ')[0])}</span></div>
+      <button class="iconbtn" data-act="soon" aria-label="Notifications">${ic('bell',20)}</button>
+    </header>
+    <section class="bal">
+      <div class="row"><small>Total balance
+        <button class="eye" data-act="eye" aria-label="${hide?'Show':'Hide'} balance">${ic(hide?'eyeoff':'eye',18)}</button></small></div>
+      <p class="amt num">${hidden(total)}</p>
+      <div class="split"><div><small>Wallet</small><b class="num">${hidden(u.acct.wallet)}</b></div>
+        <div><small>Savings</small><b class="num">${hidden(u.acct.savings)}</b></div></div>
+      <button class="btn primary" data-act="send">Send money</button>
+    </section>
+    <section class="quick" aria-label="Quick actions">
+      ${items.map(([i,l,a],n)=>`<button class="q ${n>=2&&n<7?'o':''}" data-act="${a}"><span>${ic(i)}</span>${l}</button>`).join('')}
+    </section>
+    <section class="promo">${ic('face',34)}<div><b>Face check on big transfers</b><p>Sending ₦50,000 or more to a bank asks for a quick face scan.</p></div></section>
+    <section class="card"><h2>Recent activity <button class="link" data-act="tab-activity">See all</button></h2>${txList(sortedTx(u).slice(0,4))}</section>`;
+}
+function activityView(u){
+  return `<h1 class="title">Activity</h1><section class="card">${txList(sortedTx(u))}</section>`;
+}
+function meView(u){
+  const hasFace=u.faces&&u.faces.length>0;
+  return `<div class="me-head"><div class="avatar">${esc(u.name[0].toUpperCase())}</div><h1 style="font-size:1.3rem;font-weight:800">${esc(u.name)}</h1><p style="color:var(--mute)">@${esc(u.username)}</p></div>
+    <section class="card"><h2>Face login <span class="badge ${hasFace?'':'off'}">${hasFace?'On':'Off'}</span></h2>
+      <p style="color:var(--mute);font-size:.88rem">Your face signs you in and confirms large transfers.</p>
+      <div class="stack">
+        <button class="btn soft" data-act="enr">${hasFace?'Re-scan my face':'Set up face login'}</button>
+        ${hasFace?'<button class="btn ghost danger" data-act="rm">Remove face data</button>':''}
+      </div></section>
+    <section class="card"><button class="btn ghost" data-act="out">Sign out</button></section>`;
+}
+function tabbar(){
+  const t=(id,l,i)=>`<button data-act="tab-${id}" ${tab===id?'aria-current="page"':''}>${ic(i,22)}${l}</button>`;
+  return `<nav class="tabs" aria-label="Main">${t('home','Home','home')}${t('activity','Activity','list')}${t('me','Me','user')}</nav>`;
+}
+
+function renderDash(){
+  const u=me();
+  app.innerHTML=`<main class="screen">${tab==='home'?homeView(u):tab==='activity'?activityView(u):meView(u)}</main>${tabbar()}`;
+  window.scrollTo(0,0);
+}
+
+app.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-act]');const u=me();
+  if(!b||!u)return;
+  const act=b.dataset.act;
+  if(act.startsWith('tab-')){tab=act.slice(4);return renderDash();}
+  if(act==='eye'){hide=!hide;return renderDash();}
+  if(act==='soon')return toast('Coming soon in this demo');
+  if(act==='send')return openSend('bank');
+  if(act==='own')return openSend('own');
+  if(act==='out')return signOut();
+  if(act==='enr'){
+    const faces=await enrollFace();
+    if(faces){u.faces=faces;save();toast('Face login updated');}else toast('Face setup didn’t finish');
+    return renderDash();
+  }
+  if(act==='rm'&&confirm('Remove your saved face data? You will sign in with your PIN.')){
+    u.faces=[];save();toast('Face data removed');renderDash();
+  }
+});
+
+/* ---------- send money sheet ---------- */
+function openSheet(html){
+  const bd=document.createElement('div');bd.className='backdrop';
+  bd.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.appendChild(bd);
+  const close=()=>{bd.remove();document.removeEventListener('keydown',onKey);};
+  const onKey=e=>{if(e.key==='Escape')close();};
+  document.addEventListener('keydown',onKey);
+  bd.addEventListener('click',e=>{if(e.target===bd)close();});
+  return {el:bd,close};
+}
+
+function openSend(startMode){
+  const u=me();let mode=startMode;
+  const sh=openSheet(`<h2>Send money</h2>
+    <div class="seg"><button type="button" data-m="bank">To a bank</button><button type="button" data-m="own">To my savings</button></div>
+    <form id="tf" novalidate>
+      <div id="bankF">
+        <label>Bank<select name="bank">${BANKS.map(b=>`<option>${b}</option>`).join('')}</select></label>
+        <label>Account number<input name="acctno" inputmode="numeric" maxlength="10" placeholder="10 digits"></label>
+        <label>Recipient name<input name="payee" maxlength="40"></label>
+      </div>
+      <div id="ownF" hidden>
+        <label>Direction<select name="dir"><option value="in">Wallet → Savings</option><option value="out">Savings → Wallet</option></select></label>
+      </div>
+      <label>Amount (₦)<input name="amt" inputmode="decimal" placeholder="0.00"></label>
+      <p class="hint">Wallet ${money(u.acct.wallet)} · Savings ${money(u.acct.savings)}</p>
+      <button class="btn primary" type="submit">Send</button>
+      <p class="err" id="terr" role="alert"></p>
+    </form>`);
+  const sync=()=>{
+    sh.el.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on',b.dataset.m===mode));
+    $('#bankF',sh.el).hidden=mode!=='bank';$('#ownF',sh.el).hidden=mode!=='own';
+  };
+  sh.el.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;sync();});
+  sync();
+
+  $('#tf',sh.el).onsubmit=async e=>{
+    e.preventDefault();
+    const f=new FormData(e.target),terr=t=>{$('#terr',sh.el).textContent=t;};
+    const kobo=Math.round(parseFloat(String(f.get('amt')).replace(/[₦,\s]/g,''))*100);
+    if(!(kobo>0))return terr('Enter an amount greater than ₦0.');
+    const stamp=()=>new Date().toISOString();
+    if(mode==='own'){
+      const from=f.get('dir')==='in'?'wallet':'savings',to=from==='wallet'?'savings':'wallet';
+      if(kobo>u.acct[from])return terr('That’s more than the balance in '+(from==='wallet'?'your wallet.':'your savings.'));
+      u.acct[from]-=kobo;u.acct[to]+=kobo;
+      const n=Date.now();
+      u.tx.push({id:n,date:stamp(),label:'Moved to '+(to==='savings'?'Savings':'Wallet'),amt:-kobo,acct:from},
+                {id:n+1,date:stamp(),label:'Moved from '+(from==='savings'?'Savings':'Wallet'),amt:kobo,acct:to});
+    }else{
+      const payee=(f.get('payee')||'').trim();
+      if(!/^\d{10}$/.test(f.get('acctno')))return terr('Account number must be 10 digits.');
+      if(!payee)return terr('Enter the recipient’s name.');
+      if(kobo>u.acct.wallet)return terr('That’s more than your wallet balance.');
+      if(kobo>=STEP_UP_KOBO){
+        const hasFace=u.faces&&u.faces.length>0;
+        if(!hasFace){if(!confirm('Face login is off. Continue without a face check?'))return;}
+        else if(!await verifyFace(u,'Confirm it’s you'))return terr('Face check failed. Nothing was sent.');
+      }
+      u.acct.wallet-=kobo;
+      u.tx.push({id:Date.now(),date:stamp(),label:'Sent to '+payee,amt:-kobo,acct:'wallet'});
+    }
+    save();sh.close();toast('Done');renderDash();
+  };
+}
+
+render();
+</script>
+</body>
+</html>
